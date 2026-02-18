@@ -9,7 +9,7 @@ export function AgPanel() {
   const status = connected ? 'connected' : discovered ? 'connecting' : 'disconnected'
 
   return (
-    <Card title="Antenna Genius 8\u00D72" status={status} className="h-full">
+    <Card title={"Antenna Genius 8\u00D72"} status={status} className="h-full">
       {connected ? (
         <>
           <PortStatus />

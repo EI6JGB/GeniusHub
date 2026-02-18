@@ -8,7 +8,7 @@ export function DevicesSettings() {
   const [saved, setSaved] = useState(false)
 
   const handleSave = async () => {
-    await window.electronAPI.invoke(IPC_CHANNELS.SETTINGS_DISCOVER)
+    await window.electronAPI?.invoke(IPC_CHANNELS.SETTINGS_DISCOVER)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }

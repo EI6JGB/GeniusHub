@@ -11,11 +11,12 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
   tgxlIp: '', tgxlAuth: '', pgxlIp: '', agIp: '', agAuth: '', theme: 'dark',
   isLoaded: false,
   load: async () => {
-    const settings = await window.electronAPI.invoke<AppSettings>('settings:get')
-    set({ ...settings, isLoaded: true })
+    const settings = await window.electronAPI?.invoke<AppSettings>('settings:get')
+    if (settings) set({ ...settings, isLoaded: true })
+    else set({ isLoaded: true })
   },
   setSetting: (key, value) => {
     set({ [key]: value } as Partial<SettingsStore>)
-    window.electronAPI.invoke('settings:set', { key, value })
+    window.electronAPI?.invoke('settings:set', { key, value })
   },
 }))

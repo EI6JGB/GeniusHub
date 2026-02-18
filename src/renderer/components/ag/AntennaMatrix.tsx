@@ -10,7 +10,7 @@ export function AntennaMatrix() {
   const activeB = ports.find(p => p.port === 'B')?.antenna ?? 0
 
   const handleClick = (port: 'A' | 'B', antenna: number) => {
-    window.electronAPI.invoke(IPC_CHANNELS.AG_SET_ANTENNA, { port, antenna })
+    window.electronAPI?.invoke(IPC_CHANNELS.AG_SET_ANTENNA, { port, antenna })
   }
 
   return (

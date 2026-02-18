@@ -4,7 +4,7 @@ import { usePgxlStore } from '../../store/pgxlStore'
 
 export function PgxlControls() {
   const opState = usePgxlStore(s => s.device?.operatingState ?? 'UNKNOWN')
-  const invoke = (channel: string, args?: unknown) => window.electronAPI.invoke(channel, args)
+  const invoke = (channel: string, args?: unknown) => window.electronAPI?.invoke(channel, args)
   const isOperate = opState === 'IDLE' || opState === 'TRANSMIT_A' || opState === 'TRANSMIT_B'
 
   return (

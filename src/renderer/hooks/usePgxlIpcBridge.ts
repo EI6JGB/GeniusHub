@@ -8,13 +8,15 @@ export function usePgxlIpcBridge(): void {
   const setDiscovered = usePgxlStore(s => s.setDiscovered)
 
   useEffect(() => {
+    const api = window.electronAPI
+    if (!api) return
     const onState = (payload: IpcPgxlStatePayload) => updateState(payload.state)
     const onDiscovered = (payload: IpcPgxlDiscoveredPayload) => setDiscovered(payload.device.ip)
-    window.electronAPI.on(IPC_CHANNELS.PGXL_STATE, onState as (...args: unknown[]) => void)
-    window.electronAPI.on(IPC_CHANNELS.PGXL_DISCOVERED, onDiscovered as (...args: unknown[]) => void)
+    api.on(IPC_CHANNELS.PGXL_STATE, onState as (...args: unknown[]) => void)
+    api.on(IPC_CHANNELS.PGXL_DISCOVERED, onDiscovered as (...args: unknown[]) => void)
     return () => {
-      window.electronAPI.off(IPC_CHANNELS.PGXL_STATE, onState as (...args: unknown[]) => void)
-      window.electronAPI.off(IPC_CHANNELS.PGXL_DISCOVERED, onDiscovered as (...args: unknown[]) => void)
+      api.off(IPC_CHANNELS.PGXL_STATE, onState as (...args: unknown[]) => void)
+      api.off(IPC_CHANNELS.PGXL_DISCOVERED, onDiscovered as (...args: unknown[]) => void)
     }
   }, [updateState, setDiscovered])
 }

@@ -7,7 +7,7 @@ export function TgxlControls() {
   const status = useTgxlStore(s => s.device?.status)
   const [tuning, setTuning] = useState(false)
 
-  const invoke = (channel: string, args?: unknown) => window.electronAPI.invoke(channel, args)
+  const invoke = (channel: string, args?: unknown) => window.electronAPI?.invoke(channel, args)
 
   const handleAutotune = async () => {
     setTuning(true)
