@@ -1,0 +1,78 @@
+appId: com.4o3a.geniushub
+productName: GeniusHub
+copyright: Copyright © 2025 GeniusHub Contributors
+
+directories:
+  output: dist-electron
+  buildResources: assets
+
+files:
+  - dist/renderer/**
+  - dist/main/**
+  - package.json
+
+extraMetadata:
+  main: dist/main/index.js
+
+icon: assets/icon
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  # Uncomment and configure for code signing:
+  # certificateFile: ${WIN_CSC_LINK}
+  # certificatePassword: ${WIN_CSC_KEY_PASSWORD}
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  installerIcon: assets/icon.ico
+  uninstallerIcon: assets/icon.ico
+  license: null
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+    - target: zip
+      arch:
+        - arm64
+        - x64
+  category: public.app-category.utilities
+  # Uncomment for notarization:
+  # notarize:
+  #   teamId: ${APPLE_TEAM_ID}
+
+dmg:
+  title: GeniusHub ${version}
+  iconSize: 128
+  contents:
+    - x: 380
+      y: 240
+      type: link
+      path: /Applications
+    - x: 122
+      y: 240
+      type: file
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+  category: HamRadio
+  desktop:
+    Name: GeniusHub
+    Comment: 4O3A Genius Device Control Center
+    Categories: HamRadio;Utility;
+
+publish:
+  provider: github
+  releaseType: release
