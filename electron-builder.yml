@@ -9,6 +9,7 @@ directories:
 files:
   - dist/renderer/**
   - dist/main/**
+  - dist/shared/**
   - package.json
 
 extraMetadata:

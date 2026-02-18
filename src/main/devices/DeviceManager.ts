@@ -154,6 +154,7 @@ export class DeviceManager {
   }
 
   private setupAgClient(client: AgClient): void {
+    client.on('error', (err: Error) => console.error('[AG]', err.message))
     client.on('connected', async () => {
       try {
         const antennas = await client.listAntennas()
@@ -209,6 +210,7 @@ export class DeviceManager {
   }
 
   private setupTgxlClient(client: TgxlClient): void {
+    client.on('error', (err: Error) => console.error('[TGXL]', err.message))
     client.on('connected', async () => {
       try {
         const status = await client.getStatus()
@@ -247,6 +249,7 @@ export class DeviceManager {
   }
 
   private setupPgxlClient(client: PgxlClient): void {
+    client.on('error', (err: Error) => console.error('[PGXL]', err.message))
     client.on('connected', () => {
       this.send(IPC_CHANNELS.PGXL_STATE, {
         state: { ip: '', connected: true, operatingState: 'UNKNOWN', meter: null },
