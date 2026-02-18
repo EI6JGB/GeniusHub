@@ -156,27 +156,29 @@ export class DeviceManager {
   private setupAgClient(client: AgClient): void {
     client.on('error', (err: Error) => console.error('[AG]', err.message))
     client.on('connected', async () => {
-      try {
-        const antennas = await client.listAntennas()
-        const portA = await client.getPort('A')
-        const portB = await client.getPort('B')
-        this.send(IPC_CHANNELS.AG_STATE, {
-          state: {
-            ip: '',
-            port: 9007,
-            name: '',
-            serial: '',
-            version: '',
-            connected: true,
-            antennas,
-            ports: [portA, portB],
-            groups: [],
-            outputs: [],
-          },
-        })
-      } catch {
-        // Initial state fetch failed; device will push updates
-      }
+      // Always mark as connected first so the UI transitions out of "connecting".
+      // Then attempt to fetch initial state; partial failures are non-fatal because
+      // async status pushes (portUpdate / antennaUpdate) will fill in the gaps.
+      let antennas: Awaited<ReturnType<typeof client.listAntennas>> = []
+      let portA: Awaited<ReturnType<typeof client.getPort>> = { port: 'A', band: '0', antenna: 0 }
+      let portB: Awaited<ReturnType<typeof client.getPort>> = { port: 'B', band: '0', antenna: 0 }
+      try { antennas = await client.listAntennas() } catch { /* pushed later */ }
+      try { portA    = await client.getPort('A')   } catch { /* pushed later */ }
+      try { portB    = await client.getPort('B')   } catch { /* pushed later */ }
+      this.send(IPC_CHANNELS.AG_STATE, {
+        state: {
+          ip: client.ip,
+          port: 9007,
+          name: '',
+          serial: '',
+          version: '',
+          connected: true,
+          antennas,
+          ports: [portA, portB],
+          groups: [],
+          outputs: [],
+        },
+      })
     })
 
     client.on('disconnected', () => {

@@ -88,11 +88,14 @@ export class AgClient extends EventEmitter {
     await this.sendCommand(`port set ${n} txant=${antennaNum} rxant=${antennaNum}`)
   }
 
-  // Get current state of a port
-  // Hardware confirmed: "port get 1" → "port N auto=X source=Y band=Z rxant=A txant=B ..."
+  // Get current state of a port.
+  // "port get N" returns a SINGLE content line with NO empty terminator following it:
+  //   R<seq>|0|port 1 auto=1 source=AUTO band=7 rxant=1 txant=1 tx=0 inhibit=0
+  // resolveOnContent=true makes CommandQueue resolve immediately on that line
+  // instead of waiting for the empty-message final line that never arrives.
   async getPort(port: AgPort): Promise<PortState> {
     const n = PORT_NUM[port]
-    const result = await this.sendCommand(`port get ${n}`)
+    const result = await this.sendCommand(`port get ${n}`, { resolveOnContent: true })
     const params = this.parseKv(result.lines)
     return {
       port,
@@ -244,7 +247,7 @@ export class AgClient extends EventEmitter {
     }
   }
 
-  private sendCommand(cmd: string, opts?: { timeoutMs?: number }): Promise<{ code: number; lines: string[] }> {
+  private sendCommand(cmd: string, opts?: { timeoutMs?: number; resolveOnContent?: boolean }): Promise<{ code: number; lines: string[] }> {
     if (!this.tcp) return Promise.reject(new Error('Not connected'))
     return this.queue.send(cmd, (seq) => {
       this.tcp!.send(`C${seq}|${cmd}\r\n`)
