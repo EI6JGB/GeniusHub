@@ -40,9 +40,9 @@ export class AgClient extends EventEmitter {
     this.tcp = new TcpConnection(ip, 9007)
 
     this.tcp.on('line', (line: string) => this.handleLine(line))
-    this.tcp.on('connected', () => this.onConnected(authCode))
+    this.tcp.on('connected', () => { console.log('[AG] TCP layer connected to', ip); this.onConnected(authCode) })
     this.tcp.on('disconnected', () => this.onDisconnected())
-    this.tcp.on('error', (err: Error) => this.emit('error', err))
+    this.tcp.on('error', (err: Error) => { console.error('[AG] TCP error:', err.message); this.emit('error', err) })
 
     this.tcp.connect()
   }
@@ -170,8 +170,9 @@ export class AgClient extends EventEmitter {
       // device on connect) has been received and firmwareMajor set before we proceed.
       try {
         await this.sendCommand('keepalive enable', { timeoutMs: 2000 })
-      } catch {
-        // Non-fatal
+        console.log(`[AG] keepalive enable OK (firmware v${this.firmwareMajor})`)
+      } catch (e) {
+        console.log(`[AG] keepalive enable skipped (firmware v${this.firmwareMajor}):`, (e as Error).message)
       }
 
       // Only v4.x has a forced disconnect after 5 s of silence; start pings only then.
@@ -182,10 +183,11 @@ export class AgClient extends EventEmitter {
 
       // Sub commands: v4.x requires scope ("sub port all"); v3.x doesn't support sub.
       if (this.firmwareMajor >= 4) {
-        try { await this.subscribe('port', 'all') } catch { /* non-fatal */ }
-        try { await this.subscribe('antenna', 'all') } catch { /* non-fatal */ }
+        try { await this.subscribe('port', 'all'); console.log('[AG] sub port all OK') } catch (e) { console.warn('[AG] sub port all failed:', (e as Error).message) }
+        try { await this.subscribe('antenna', 'all'); console.log('[AG] sub antenna all OK') } catch (e) { console.warn('[AG] sub antenna all failed:', (e as Error).message) }
       }
 
+      console.log('[AG] Emitting connected event')
       this.emit('connected')
     } catch (err) {
       this.emit('error', err instanceof Error ? err : new Error(String(err)))
@@ -204,6 +206,7 @@ export class AgClient extends EventEmitter {
     const bannerMatch = line.match(/^V(\d+)\./)
     if (bannerMatch) {
       this.firmwareMajor = parseInt(bannerMatch[1], 10)
+      console.log(`[AG] Banner received: "${line}" → firmware v${this.firmwareMajor}`)
       return
     }
 

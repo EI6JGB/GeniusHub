@@ -7,6 +7,12 @@ import { TgxlClient } from './tgxl/TgxlClient'
 import { PgxlClient } from './pgxl/PgxlClient'
 import { IPC_CHANNELS } from '../../shared/ipc-types'
 import type { AgPort } from './ag/AgTypes'
+import type { AgDeviceState } from '../../shared/device-types'
+
+const AG_DISCONNECTED: AgDeviceState = {
+  ip: '', port: 9007, name: '', serial: '', version: '',
+  connected: false, antennas: [], ports: [], groups: [], outputs: [],
+}
 
 export class DeviceManager {
   private win: BrowserWindow | null = null
@@ -16,6 +22,8 @@ export class DeviceManager {
   private agDiscovery: AgDiscovery
   private tgxlDiscovery: TgxlDiscovery
   private pgxlDiscovery: PgxlDiscovery
+  // Cached full AG state so portUpdate/antennaUpdate always send complete objects
+  private agState: AgDeviceState | null = null
 
   constructor() {
     this.agDiscovery = new AgDiscovery()
@@ -117,6 +125,7 @@ export class DeviceManager {
     if (this.agClient) {
       this.agClient.disconnect()
       this.agClient = null
+      this.agState = null
     }
     if (this.tgxlClient) {
       this.tgxlClient.disconnect()
@@ -154,60 +163,67 @@ export class DeviceManager {
   }
 
   private setupAgClient(client: AgClient): void {
-    client.on('error', (err: Error) => console.error('[AG]', err.message))
+    client.on('error', (err: Error) => console.error('[AG] Error:', err.message))
+
     client.on('connected', async () => {
-      // Always mark as connected first so the UI transitions out of "connecting".
-      // Then attempt to fetch initial state; partial failures are non-fatal because
+      console.log('[AG] Connected to', client.ip)
+
+      // Notify renderer immediately — don't wait for state fetches.
+      this.agState = { ...AG_DISCONNECTED, ip: client.ip, connected: true }
+      this.send(IPC_CHANNELS.AG_STATE, { state: this.agState })
+
+      // Fetch initial state; individual failures are non-fatal because
       // async status pushes (portUpdate / antennaUpdate) will fill in the gaps.
-      let antennas: Awaited<ReturnType<typeof client.listAntennas>> = []
-      let portA: Awaited<ReturnType<typeof client.getPort>> = { port: 'A', band: '0', antenna: 0 }
-      let portB: Awaited<ReturnType<typeof client.getPort>> = { port: 'B', band: '0', antenna: 0 }
-      try { antennas = await client.listAntennas() } catch { /* pushed later */ }
-      try { portA    = await client.getPort('A')   } catch { /* pushed later */ }
-      try { portB    = await client.getPort('B')   } catch { /* pushed later */ }
-      this.send(IPC_CHANNELS.AG_STATE, {
-        state: {
-          ip: client.ip,
-          port: 9007,
-          name: '',
-          serial: '',
-          version: '',
-          connected: true,
-          antennas,
-          ports: [portA, portB],
-          groups: [],
-          outputs: [],
-        },
-      })
+      try {
+        const antennas = await client.listAntennas()
+        console.log(`[AG] Fetched ${antennas.length} antenna(s)`)
+        if (!this.agState) return
+        this.agState = { ...this.agState, antennas }
+        this.send(IPC_CHANNELS.AG_STATE, { state: this.agState })
+      } catch (e) {
+        console.error('[AG] listAntennas failed:', e)
+      }
+
+      try {
+        const portA = await client.getPort('A')
+        console.log('[AG] Port A:', portA)
+        if (!this.agState) return
+        this.agState = { ...this.agState, ports: this.agState.ports.filter(p => p.port !== 'A').concat(portA) }
+        this.send(IPC_CHANNELS.AG_STATE, { state: this.agState })
+      } catch (e) {
+        console.error('[AG] getPort(A) failed:', e)
+      }
+
+      try {
+        const portB = await client.getPort('B')
+        console.log('[AG] Port B:', portB)
+        if (!this.agState) return
+        this.agState = { ...this.agState, ports: this.agState.ports.filter(p => p.port !== 'B').concat(portB) }
+        this.send(IPC_CHANNELS.AG_STATE, { state: this.agState })
+      } catch (e) {
+        console.error('[AG] getPort(B) failed:', e)
+      }
     })
 
     client.on('disconnected', () => {
-      this.send(IPC_CHANNELS.AG_STATE, {
-        state: {
-          ip: '',
-          port: 9007,
-          name: '',
-          serial: '',
-          version: '',
-          connected: false,
-          antennas: [],
-          ports: [],
-          groups: [],
-          outputs: [],
-        },
-      })
+      console.log('[AG] Disconnected')
+      this.agState = null
+      this.send(IPC_CHANNELS.AG_STATE, { state: AG_DISCONNECTED })
     })
 
     client.on('portUpdate', (portState) => {
-      this.send(IPC_CHANNELS.AG_STATE, {
-        state: { connected: true, ports: [portState] },
-      })
+      if (!this.agState) return
+      this.agState = {
+        ...this.agState,
+        ports: this.agState.ports.filter(p => p.port !== portState.port).concat(portState),
+      }
+      this.send(IPC_CHANNELS.AG_STATE, { state: this.agState })
     })
 
     client.on('antennaUpdate', (antennas) => {
-      this.send(IPC_CHANNELS.AG_STATE, {
-        state: { connected: true, antennas },
-      })
+      if (!this.agState) return
+      this.agState = { ...this.agState, antennas }
+      this.send(IPC_CHANNELS.AG_STATE, { state: this.agState })
     })
   }
 

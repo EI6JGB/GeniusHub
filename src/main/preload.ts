@@ -1,13 +1,23 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { ElectronAPI } from '../shared/ipc-types'
 
+// Map from original callback → ipcRenderer wrapper so off() can remove the right listener.
+type AnyFn = (...args: unknown[]) => void
+const wrappers = new Map<AnyFn, AnyFn>()
+
 const api: ElectronAPI = {
   invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
   on: (channel, callback) => {
-    ipcRenderer.on(channel, (_, ...args) => callback(...args))
+    const wrapper: AnyFn = (_, ...args) => callback(...args)
+    wrappers.set(callback, wrapper)
+    ipcRenderer.on(channel, wrapper as never)
   },
   off: (channel, callback) => {
-    ipcRenderer.removeListener(channel, callback as never)
+    const wrapper = wrappers.get(callback)
+    if (wrapper) {
+      ipcRenderer.removeListener(channel, wrapper as never)
+      wrappers.delete(callback)
+    }
   },
 }
 
