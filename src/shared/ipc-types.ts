@@ -73,6 +73,7 @@ export interface AppSettings {
   agIp: string
   agAuth: string
   theme: 'dark'
+  workspaceLayout?: string  // JSON-serialized PanelConfig[]
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {

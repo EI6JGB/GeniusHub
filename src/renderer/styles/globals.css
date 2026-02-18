@@ -22,3 +22,148 @@ body {
   overflow: hidden;
   user-select: none;
 }
+
+/* ── flexlayout-react theme overrides ───────────────────────────── */
+
+.flexlayout__layout {
+  background-color: var(--bg-base);
+}
+
+/* Tab content area */
+.flexlayout__tab {
+  background-color: var(--bg-panel);
+  overflow: hidden;
+}
+
+/* Tabset container */
+.flexlayout__tabset {
+  background-color: var(--bg-panel);
+}
+
+/* Tab bar background */
+.flexlayout__tabset_tabbar_outer,
+.flexlayout__tabset_tabbar_outer_top {
+  background-color: var(--bg-panel);
+  border-bottom: 1px solid #1f2937;
+}
+
+/* Individual tab buttons */
+.flexlayout__tab_button {
+  color: #6b7280;
+  padding: 5px 12px;
+  border-radius: 0;
+}
+.flexlayout__tab_button:hover {
+  color: #d1d5db;
+  background-color: var(--bg-elevated);
+}
+.flexlayout__tab_button--selected {
+  color: #e6edf3;
+  background-color: var(--bg-elevated);
+  border-bottom: 2px solid var(--color-port-a);
+}
+.flexlayout__tab_button_content {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Close button on tabs */
+.flexlayout__tab_button_trailing {
+  color: #4b5563;
+}
+.flexlayout__tab_button_trailing:hover {
+  color: var(--color-danger);
+}
+
+/* Splitter / resizer */
+.flexlayout__splitter {
+  background-color: #1f2937;
+}
+.flexlayout__splitter_drag {
+  background-color: var(--color-port-a) !important;
+}
+.flexlayout__splitter:hover {
+  background-color: #374151;
+}
+
+/* Toolbar buttons (maximize, + button) */
+.flexlayout__tab_toolbar_button,
+.flexlayout__tab_toolbar_button-max,
+.flexlayout__tab_toolbar_button-restore {
+  color: #6b7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 15px;
+  line-height: 1.3;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flexlayout__tab_toolbar_button:hover,
+.flexlayout__tab_toolbar_button-max:hover,
+.flexlayout__tab_toolbar_button-restore:hover {
+  color: #e6edf3;
+  background-color: var(--bg-elevated);
+}
+
+/* Our custom + button */
+.gh-add-widget-btn {
+  font-size: 18px;
+  font-weight: 300;
+  color: #4b5563;
+}
+.gh-add-widget-btn:hover {
+  color: var(--color-port-a);
+  background-color: var(--bg-elevated);
+}
+
+/* Drag/drop outline */
+.flexlayout__outline_rect {
+  border: 2px solid var(--color-port-a);
+  border-radius: 4px;
+}
+.flexlayout__outline_rect_edge {
+  border: 2px solid var(--color-port-a);
+  opacity: 0.7;
+}
+.flexlayout__drag_rect {
+  background-color: rgba(30, 136, 229, 0.15);
+  border: 1px solid var(--color-port-a);
+  border-radius: 4px;
+  color: var(--color-port-a);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Right-click context menu */
+.flexlayout__popup_menu {
+  background-color: var(--bg-elevated);
+  border: 1px solid #374151;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  padding: 4px;
+}
+.flexlayout__popup_menu_item {
+  color: #d1d5db;
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.flexlayout__popup_menu_item:hover {
+  background-color: #1f2937;
+  color: #e6edf3;
+}
+
+/* Edge drop zones */
+.flexlayout__edge_rect {
+  background-color: rgba(30, 136, 229, 0.25);
+  border: 2px dashed var(--color-port-a);
+}
